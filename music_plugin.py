@@ -8,11 +8,12 @@ from bridge.reply import Reply, ReplyType
 
 logger = logging.getLogger(__name__)
 
+
 @register(
     name="MusicPlugin",
     desire_priority=10,
     desc="支持QQ音乐、网易云音乐和酷狗音乐的点歌插件",
-    version="1.2",
+    version="1.3",
     author="Your Name",
 )
 class MusicPlugin(Plugin):
@@ -92,12 +93,17 @@ class MusicPlugin(Plugin):
             response = requests.get(api_url, params=params)
             response.raise_for_status()
             data = response.json()
+
+            # 检查数据完整性
+            if "data" not in data or "song" not in data["data"] or "list" not in data["data"]["song"]:
+                return {"error": True, "message": "未找到相关歌曲，请尝试其他关键词"}
+
             song = data["data"]["song"]["list"][0]
             return {
                 "error": False,
                 "data": {
                     "name": song["songname"],
-                    "artist": song["singer"][0]["name"],
+                    "artist": song["singer"][0]["name"] if song.get("singer") else "未知歌手",
                     "url": f"https://y.qq.com/n/ryqq/songDetail/{song['songmid']}",
                 },
             }
