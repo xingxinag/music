@@ -8,12 +8,11 @@ from bridge.reply import Reply, ReplyType
 
 logger = logging.getLogger(__name__)
 
-
 @register(
     name="MusicPlugin",
     desire_priority=10,
     desc="支持QQ音乐、网易云音乐和酷狗音乐的点歌插件",
-    version="1.0",
+    version="1.1",
     author="Your Name",
 )
 class MusicPlugin(Plugin):
@@ -33,15 +32,31 @@ class MusicPlugin(Plugin):
             return json.load(f)
 
     def handle_request(self, context):
-        """处理点歌指令"""
+        """处理接收到的消息"""
         if context.type != ContextType.TEXT:
             return
 
         content = context.content.strip()
+
+        # 如果消息是帮助指令
+        if content == "#help":
+            reply = Reply(
+                ReplyType.INFO,
+                "🎵 MusicPlugin 使用帮助 🎵\n"
+                "使用指令点歌 [平台] [关键词]，例如：\n"
+                "点歌 QQ 稻香\n"
+                "点歌 网易云音乐 南山南\n"
+                "点歌 酷狗 浪子回头\n"
+                "支持平台：QQ、网易云音乐、酷狗"
+            )
+            context.reply = reply
+            return
+
+        # 判断是否为点歌指令
         if not content.startswith("点歌 "):
             return
 
-        # 解析指令
+        # 解析点歌指令
         parts = content.split(" ", 2)
         if len(parts) < 3:
             reply = Reply(ReplyType.ERROR, "❌ 格式错误，请使用：点歌 [平台] [关键词]")
@@ -68,7 +83,9 @@ class MusicPlugin(Plugin):
             song = result["data"]
             reply = Reply(
                 ReplyType.INFO,
-                f"🎵 歌曲：{song['name']} - {song['artist']}\n📎 链接：{song['url']}\n🖼️ 封面：{song['cover']}",
+                f"🎵 歌曲：{song['name']} - {song['artist']}\n"
+                f"📎 链接：{song['url']}\n"
+                f"🖼️ 封面：{song['cover']}"
             )
         context.reply = reply
 
