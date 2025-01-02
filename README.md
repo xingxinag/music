@@ -20,11 +20,11 @@
 ---
 
 ## 文件结构
-plugins/ 
-─ music_plugin/ 
-─ music_plugin.py           
-# 插件主文件，集成所有功能  
-─ config.json.template
+music_plugin/
+├── __init__.py            # 插件初始化文件
+├── music_plugin.py        # 主插件文件
+├── config.json.template   # 配置模板
+└── README.md              # 插件使用说明文档
 
 ---
 
