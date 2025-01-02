@@ -5,7 +5,6 @@ import logging
 from plugins import Plugin, register
 from bridge.context import ContextType
 from bridge.reply import Reply, ReplyType
-from bridge.bridge import EventAction, EventContext
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +19,8 @@ logger = logging.getLogger(__name__)
 class MusicPlugin(Plugin):
     def __init__(self):
         super().__init__()
-        self.handlers[EventContext.ON_HANDLE_CONTEXT] = self.handle_request
         self.config = self.load_config()
+        self.handlers["on_handle_context"] = self.handle_request
         logger.info("[MusicPlugin] 插件已初始化")
 
     def load_config(self):
@@ -33,9 +32,8 @@ class MusicPlugin(Plugin):
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def handle_request(self, e_context: EventContext):
+    def handle_request(self, context):
         """处理点歌指令"""
-        context = e_context["context"]
         if context.type != ContextType.TEXT:
             return
 
@@ -47,8 +45,7 @@ class MusicPlugin(Plugin):
         parts = content.split(" ", 2)
         if len(parts) < 3:
             reply = Reply(ReplyType.ERROR, "❌ 格式错误，请使用：点歌 [平台] [关键词]")
-            e_context["reply"] = reply
-            e_context.action = EventAction.BREAK_PASS
+            context.reply = reply
             return
 
         platform_name, keyword = parts[1], parts[2]
@@ -60,8 +57,7 @@ class MusicPlugin(Plugin):
         platform = platform_map.get(platform_name)
         if not platform:
             reply = Reply(ReplyType.ERROR, f"❌ 不支持的平台：{platform_name}，支持的平台有：QQ、网易云音乐、酷狗")
-            e_context["reply"] = reply
-            e_context.action = EventAction.BREAK_PASS
+            context.reply = reply
             return
 
         # 调用搜索功能
@@ -70,9 +66,11 @@ class MusicPlugin(Plugin):
             reply = Reply(ReplyType.ERROR, f"❌ 错误：{result['message']}")
         else:
             song = result["data"]
-            reply = Reply(ReplyType.INFO, f"🎵 歌曲：{song['name']} - {song['artist']}\n📎 链接：{song['url']}\n🖼️ 封面：{song['cover']}")
-        e_context["reply"] = reply
-        e_context.action = EventAction.BREAK_PASS
+            reply = Reply(
+                ReplyType.INFO,
+                f"🎵 歌曲：{song['name']} - {song['artist']}\n📎 链接：{song['url']}\n🖼️ 封面：{song['cover']}",
+            )
+        context.reply = reply
 
     def search_music(self, platform, keyword):
         """根据平台搜索音乐"""
