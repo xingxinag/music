@@ -19,6 +19,38 @@ class MusicPlugin:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
+    def handle_request(self, command):
+        """处理点歌请求"""
+        if not command.startswith("点歌 "):
+            return "❌ 格式错误，请使用：点歌 [平台] [关键词]"
+
+        parts = command.split(" ", 2)
+        if len(parts) < 3:
+            return "❌ 格式错误，请使用：点歌 [平台] [关键词]"
+
+        platform_name, keyword = parts[1], parts[2]
+        platform_map = {
+            "QQ": "qq",
+            "网易云音乐": "netease",
+            "酷狗": "kugou",
+        }
+
+        platform = platform_map.get(platform_name)
+        if not platform:
+            return f"❌ 不支持的平台：{platform_name}，支持的平台有：QQ、网易云音乐、酷狗"
+
+        # 调用对应平台的搜索方法
+        result = self.search_music(platform, keyword)
+        if result["error"]:
+            return f"❌ 错误：{result['message']}"
+
+        song = result["data"]
+        return (
+            f"🎵 歌曲：{song['name']} - {song['artist']}\n"
+            f"📎 链接：{song['url']}\n"
+            f"🖼️ 封面：{song['cover']}"
+        )
+
     def search_music(self, platform, keyword):
         """根据平台和关键词搜索音乐"""
         if platform == "qq":
@@ -123,16 +155,10 @@ class MusicPlugin:
             }
         }
 
-    def handle_request(self, platform, keyword):
-        """处理点歌请求"""
-        result = self.search_music(platform, keyword)
-        if result["error"]:
-            return f"❌ 错误：{result['message']}"
-        song = result["data"]
-        return f"🎵 歌曲：{song['name']} - {song['artist']}\n📎 链接：{song['url']}\n🖼️ 封面：{song['cover']}"
-
 
 # 测试代码
 if __name__ == "__main__":
     plugin = MusicPlugin()
-    print(plugin.h
+    print(plugin.handle_request("点歌 QQ 稻香"))
+    print(plugin.handle_request("点歌 网易云音乐 夜曲"))
+    print(plugin.handle_request("点歌 酷狗 浪子回头"))
