@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
     name="MusicPlugin",
     desire_priority=10,
     desc="支持QQ音乐、网易云音乐和酷狗音乐的点歌插件",
-    version="1.1",
+    version="1.2",
     author="Your Name",
 )
 class MusicPlugin(Plugin):
@@ -37,20 +37,6 @@ class MusicPlugin(Plugin):
             return
 
         content = context.content.strip()
-
-        # 如果消息是帮助指令
-        if content == "#help":
-            reply = Reply(
-                ReplyType.INFO,
-                "🎵 MusicPlugin 使用帮助 🎵\n"
-                "使用指令点歌 [平台] [关键词]，例如：\n"
-                "点歌 QQ 稻香\n"
-                "点歌 网易云音乐 南山南\n"
-                "点歌 酷狗 浪子回头\n"
-                "支持平台：QQ、网易云音乐、酷狗"
-            )
-            context.reply = reply
-            return
 
         # 判断是否为点歌指令
         if not content.startswith("点歌 "):
@@ -83,9 +69,7 @@ class MusicPlugin(Plugin):
             song = result["data"]
             reply = Reply(
                 ReplyType.INFO,
-                f"🎵 歌曲：{song['name']} - {song['artist']}\n"
-                f"📎 链接：{song['url']}\n"
-                f"🖼️ 封面：{song['cover']}"
+                f"🎵 找到歌曲：{song['name']} - {song['artist']}\n👉 [播放链接]({song['url']})"
             )
         context.reply = reply
 
@@ -115,7 +99,6 @@ class MusicPlugin(Plugin):
                     "name": song["songname"],
                     "artist": song["singer"][0]["name"],
                     "url": f"https://y.qq.com/n/ryqq/songDetail/{song['songmid']}",
-                    "cover": f"https://y.qq.com/music/photo_new/T002R300x300M000{song['albummid']}.jpg",
                 },
             }
         except Exception as e:
